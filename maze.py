@@ -22,7 +22,11 @@ class Maze:
 		self.__cell_size_x = cell_size_x
 		self.__cell_size_y = cell_size_y
 		self.__win = win
+
 		self._create_cells()
+		self._break_entrance_and_exit()
+		self._break_walls_r(0, 0)
+		self._reset_cells_visited()
 	
 	def _create_cells(self):
 		self._cells = []
@@ -49,33 +53,34 @@ class Maze:
 		self._draw_cell(-1, -1)
 	
 	def _break_walls_r(self, i, j):
+		self._cells[i][j].visited = True
 		current = self._cells[i][j]
 		current.visited = True
 
-		to_visit = self._find_possible_coords(i, j)
-		if len(to_visit) == 0:
-			self._draw_cell(i, j)
-			return
+		while True:
+			to_visit = self._find_possible_coords(i, j)
+			if len(to_visit) == 0:
+				self._draw_cell(i, j)
+				return
 
-		direction = random.randint(0, len(to_visit) - 1)
-		to_i, to_j = to_visit[direction]
-		to_cell = self._cells[to_i][to_j]
+			direction = random.randint(0, len(to_visit) - 1)
+			to_i, to_j = to_visit[direction]
+			to_cell = self._cells[to_i][to_j]
 
-		if to_i > i:
-			current.has_right_wall = False
-			to_cell.has_left_wall = False
-		elif to_i < i:
-			current.has_left_wall = False
-			to_cell.has_right_wall = False
-		elif to_j > j:
-			current.has_bottom_wall = False
-			to_cell.has_top_wall = False
-		else:
-			current.has_top_wall = False
-			to_cell.has_bottom_wall = False
+			if to_i > i:
+				current.has_right_wall = False
+				to_cell.has_left_wall = False
+			elif to_i < i:
+				current.has_left_wall = False
+				to_cell.has_right_wall = False
+			elif to_j > j:
+				current.has_bottom_wall = False
+				to_cell.has_top_wall = False
+			else:
+				current.has_top_wall = False
+				to_cell.has_bottom_wall = False
 
-		self._draw_cell(i, j)
-		self._break_walls_r(to_i, to_j)
+			self._break_walls_r(to_i, to_j)
 
 	def _find_possible_coords(self, i, j):
 		check_coords = [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]
@@ -130,13 +135,11 @@ class Maze:
 				)
 		for to_i, to_j in possible_coords:
 			print(f"trying: {to_i}, {to_j}")
-			self._animate()
 			current.draw_move(self._cells[to_i][to_j])
 			result = self._solve_r(to_i, to_j)
 			if result:
 				return True
 			else:
-				self._animate()
 				current.draw_move(self._cells[to_i][to_j], True)
 		return False
 
